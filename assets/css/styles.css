@@ -1,0 +1,150 @@
+:root{
+  --gold:#d3a37b; --gold-3:#b8835e;
+  --silver:#cfd5da;
+  --bronze:#c18b5a;
+  --light-border:#cfcfd9;
+}
+
+/* fundos */
+html[data-mdb-theme="dark"] body{
+  background:
+    radial-gradient(1100px 600px at 15% -10%, rgba(211,163,123,.18), transparent 60%),
+    radial-gradient(900px 520px at 110% 10%, rgba(211,163,123,.12), transparent 60%),
+    #0b0a0f;
+  color:#e9e9f3;
+}
+html[data-mdb-theme="light"] body{ background:#f7f7fb; color:#111; }
+
+/* textos / cabeçalho */
+.header-title{ color:#fff; }
+.muted-sub{ color:rgba(255,255,255,.75); font-size:.9rem; }
+.toggle-label{ color:#fff; }
+html[data-mdb-theme="light"] .header-title,
+html[data-mdb-theme="light"] .toggle-label{ color:#111; }
+html[data-mdb-theme="light"] .muted-sub{ color:#333; }
+
+/* cards + bordas (light com contraste maior) */
+.card.brand-card{
+  background:linear-gradient(135deg, rgba(211,163,123,.16), rgba(211,163,123,.04));
+  border:1px solid rgba(211,163,123,.25);
+}
+html[data-mdb-theme="light"] .card.brand-card{
+  background:#fff; border-color:var(--light-border);
+}
+.card.brand-card .card-body{ padding:.9rem .9rem; }
+
+/* formulários */
+.form-label{ margin-bottom:.25rem; }
+.form-control,.form-select,.input-group-text{ padding:.42rem .55rem; font-size:.95rem; }
+
+/* badge SP - preto no tema claro */
+.chip{
+  background:linear-gradient(135deg, rgba(211,163,123,.22), rgba(211,163,123,.08));
+  border:1px solid rgba(211,163,123,.35);
+  color:#ffe6d3;
+}
+html[data-mdb-theme="light"] #spiritBadge{
+  background:#f0e6d9; border-color:#d2b799; color:#000;
+}
+
+.section-title{ font-weight:700; }
+.section-bar{
+  font-weight:700; border:1px solid rgba(255,255,255,.08); border-radius:12px;
+  background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+  padding:.4rem .6rem; color:#fff; margin:.6rem 0;
+}
+html[data-mdb-theme="light"] .section-bar{ background:#fff; border-color:var(--light-border); color:#111; }
+
+/* TABBAR — ocupa 100% */
+.full-tabs{ display:flex; gap:.5rem; }
+.full-tabs .nav-item{ flex:1; }
+.full-tabs .full-link{
+  width:100%; text-align:center; font-weight:800; letter-spacing:.3px;
+  padding:.8rem 0; border-radius:.75rem;
+  background:rgba(255,255,255,.05); color:#fff;
+  border:1px solid rgba(255,255,255,.1);
+  transition:.2s ease;
+}
+.full-tabs .full-link:hover,.full-tabs .full-link:focus{
+  background:linear-gradient(135deg, rgba(211,163,123,.25), rgba(211,163,123,.08));
+}
+.full-tabs .full-link.active{
+  background:linear-gradient(135deg, rgba(211,163,123,.35), rgba(211,163,123,.15));
+  color:#fff;
+}
+html[data-mdb-theme="light"] .full-tabs .full-link{
+  background:#fff; color:#111; border-color:var(--light-border);
+}
+html[data-mdb-theme="light"] .full-tabs .full-link:hover{ background:#f1efe9; }
+html[data-mdb-theme="light"] .full-tabs .full-link.active{ background:#eadfce; color:#111; }
+
+/* BLANKS (2 colunas) */
+.blank-pill{
+  display:flex; align-items:center; gap:.5rem; width:100%;
+  background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12);
+  border-radius:.6rem; padding:.48rem .6rem;
+}
+.blank-pill img{ width:18px;height:18px; image-rendering:pixelated; }
+.blank-price{ max-width:180px; }
+html[data-mdb-theme="light"] .blank-pill{ background:#fff; border-color:var(--light-border); }
+
+/* RUNES PRICE — 2 colunas */
+.price-row .input-group{ max-width:360px; }
+.price-row img.rune-icon{ width:18px; height:18px; image-rendering:pixelated; margin-right:.4rem; }
+.price-row .name{ font-size:.93rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+/* PÓDIO */
+.podium-wrap{ display:grid; grid-template-columns:1fr; gap:1rem; }
+@media (min-width: 992px){ .podium-wrap{ grid-template-columns:1fr 1.2fr 1fr; } }
+.pedestal{
+  position:relative; border-radius:16px; padding:1.1rem .9rem .9rem;
+  background:linear-gradient(180deg, rgba(255,255,255,.06) 0%, rgba(255,255,255,.02) 100%);
+  border:1px solid rgba(255,255,255,.06); min-height:220px; overflow:hidden;
+}
+.pedestal .topglow{ position:absolute; inset:0; background: radial-gradient(220px 120px at 50% 0%, rgba(255,255,255,.08), transparent 60%); mix-blend-mode: screen; }
+.rune-top img{ width:72px;height:72px; image-rendering:pixelated; border-radius:14px; }
+.pill{ display:inline-flex; align-items:center; gap:.35rem; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1); border-radius:999px; padding:.2rem .55rem; font-size:.82rem; }
+html[data-mdb-theme="light"] .pedestal{ background:#fff; border-color:var(--light-border); }
+html[data-mdb-theme="light"] .pill{ background:#fff; border-color:var(--light-border); color:#111; }
+
+/* RANK LIST – detalhado */
+.result-row{ display:flex; flex-direction:column; gap:.6rem; border:1px solid rgba(255,255,255,.08); border-radius:18px; background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02)); padding:.8rem .95rem; }
+.result-head{ display:flex; align-items:center; justify-content:space-between; gap:.9rem; }
+.rank-number{ font-weight:900; font-size:1.35rem; width:36px; text-align:center; }
+.rank-1{ color:#d4a55f; } .rank-2{ color:#b9c7ce; } .rank-3{ color:#c78654; }
+.result-meta{ display:flex; gap:.5rem; flex-wrap:wrap; }
+.tag{ padding:.12rem .5rem; border-radius:999px; font-size:.78rem; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1); }
+.result-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:.5rem .8rem; }
+@media (min-width: 768px){ .result-grid{ grid-template-columns:repeat(6,1fr); } }
+.kv{ background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1); border-radius:10px; padding:.45rem .55rem; }
+.kv .k{ opacity:.75; font-size:.8rem; }
+.kv .v{ font-weight:700; }
+
+html[data-mdb-theme="light"] .result-row{ background:#fff; border-color:var(--light-border); }
+html[data-mdb-theme="light"] .tag,
+html[data-mdb-theme="light"] .kv{ background:#fff; border-color:var(--light-border); color:#111; }
+html[data-mdb-theme="light"] .kv .k{ opacity:.9; }
+
+/* placeholder */
+.placeholder-box{ padding:1rem; border:1px dashed rgba(255,255,255,.22); border-radius:12px; color:#cfcfe6; }
+html[data-mdb-theme="light"] .placeholder-box{ background:#fff; border-color:var(--light-border); color:#555; }
+
+/* botão comparar maior + margem */
+.btn-compare{ padding:.95rem 1.25rem; font-size:1.05rem; margin-bottom:90px; }
+
+/* botão reset removido (mantido seletor se usarem) */
+.btn-reset{ display:none !important; }
+
+/* PIX banner modal — FUNDO SÓLIDO */
+.pix-banner{
+  border-radius:18px; overflow:hidden; border:1px solid rgba(211,163,123,.45);
+  background:#121114;
+}
+html[data-mdb-theme="light"] .pix-banner{ background:#ffffff; border-color:var(--light-border); }
+.pix-emoji{ font-size:2rem; }
+.pix-box{ margin:.6rem auto 0; padding:.7rem .9rem; border-radius:12px; border:1px dashed rgba(211,163,123,.55); background:rgba(211,163,123,.12); display:inline-block; }
+.pix-key{ font-size:1.05rem; display:flex; align-items:center; gap:.4rem; }
+.pix-name{ font-size:.9rem; opacity:.9; }
+
+/* selects de unidade SEMPRE pretos */
+.unit-select{ color:#000 !important; background:#fff !important; }
