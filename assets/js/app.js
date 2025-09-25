@@ -152,12 +152,27 @@ const copyMsg = document.getElementById('copyMsg');
 const itemsBody = document.getElementById('itemsBody');
 const addItemBtn = document.getElementById('addItem');
 const clearItemsBtn = document.getElementById('clearItems');
+const ITEMS_KEY = "exordion_regen_items_v1";
 
 /* ================== ITENS (estado + UI) ================== */
-let items = [
-  { name:"Exordian Boots", qty:1, plusMp:1, perSec:3, durationMin:null, price:null },
-  { name:"Exordian Ring",  qty:1, plusMp:1, perSec:4, durationMin:null, price:null },
-];
+let items = loadItems();
+if (!items.length){
+  // valores padrão se não houver nada salvo
+  items = [
+    { name:"Exordian Boots", qty:1, plusMp:1, perSec:3, durationMin:null, price:null },
+    { name:"Exordian Ring",  qty:1, plusMp:1, perSec:4, durationMin:null, price:null },
+  ];
+  saveItems(items);
+}
+
+function loadItems(){
+  try { return JSON.parse(localStorage.getItem(ITEMS_KEY) || "[]"); }
+  catch { return []; }
+}
+
+function saveItems(list){
+  localStorage.setItem(ITEMS_KEY, JSON.stringify(list));
+}
 
 function itemRow(idx, it){
   return `
@@ -186,16 +201,19 @@ if (itemsBody){
     if(e.target.classList.contains('it-persec')) it.perSec=+e.target.value;
     if(e.target.classList.contains('it-dur')) it.durationMin = e.target.value===''?null:+e.target.value;
     if(e.target.classList.contains('it-price')) it.price = e.target.value===''?null:+e.target.value;
+    saveItems(items);
   });
   itemsBody.addEventListener('click', e=>{
     if(e.target.closest('.it-del')){
       const tr=e.target.closest('tr[data-idx]');
-      items.splice(+tr.dataset.idx,1); renderItems();
+      items.splice(+tr.dataset.idx,1); 
+      saveItems(items);
+      renderItems();
     }
   });
 }
-addItemBtn?.addEventListener('click', ()=>{ items.push({name:"Item",qty:1,plusMp:1,perSec:3}); renderItems(); });
-clearItemsBtn?.addEventListener('click', ()=>{ items=[]; renderItems(); });
+addItemBtn?.addEventListener('click', ()=>{ items.push({name:"Item",qty:1,plusMp:1,perSec:3}); saveItems(items); renderItems();});
+clearItemsBtn?.addEventListener('click', ()=>{ items=[]; saveItems(items); renderItems();});
 renderItems();
 
 /* ================== BLANKS ================== */
