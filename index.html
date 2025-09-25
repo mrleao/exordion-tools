@@ -1,0 +1,771 @@
+<!doctype html>
+<html lang="pt-BR" data-mdb-theme="dark">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Exordion • Ranking de Runas & Safezone</title>
+
+  <!-- MDB UI Kit + FontAwesome -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/7.3.2/mdb.min.css" rel="stylesheet"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/7.3.2/mdb.min.js"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet"/>
+
+  <style>
+    :root{
+      --gold: #d3a37b; --gold-2:#e8c4a8; --gold-3:#b8835e;
+      --silver:#cfd5da; --silver-2:#e7ebef;
+      --bronze:#c18b5a; --bronze-2:#e2b084;
+      --ink:#0b0a0f;
+    }
+    body{
+      background:
+        radial-gradient(1100px 600px at 15% -10%, rgba(211,163,123,.18), transparent 60%),
+        radial-gradient(900px 520px at 110% 10%, rgba(211,163,123,.12), transparent 60%),
+        #0b0a0f;
+    }
+
+    /* densidade compacta */
+    .card.brand-card{ background:linear-gradient(135deg, rgba(211,163,123,.16), rgba(211,163,123,.04)); border:1px solid rgba(211,163,123,.25); }
+    .card.brand-card .card-body{ padding:.9rem .9rem; }
+    .form-label{ margin-bottom:.25rem; }
+    .form-control,.form-select,.input-group-text{ padding:.35rem .5rem; font-size:.9rem; }
+    .table-sm>:not(caption)>*>*{ padding:.3rem .5rem; }
+    .chip{ background:linear-gradient(135deg, rgba(211,163,123,.22), rgba(211,163,123,.08)); border:1px solid rgba(211,163,123,.35); color:#ffe6d3; }
+    .brand-accent{ color:var(--gold); }
+
+    /* blanks + preços compactos */
+    .compact-grid .input-group-text{ min-width:38px; justify-content:center; }
+    .blank-pill{ display:flex; align-items:center; gap:.4rem; width:100%; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.07); border-radius:.5rem; padding:.35rem .5rem; }
+    .blank-pill img{ width:18px; height:18px; image-rendering:pixelated; }
+    .blank-price{ max-width:120px; }
+    .price-row .input-group{ max-width:260px; }
+    .price-row img.rune-icon{ width:18px; height:18px; image-rendering:pixelated; margin-right:.35rem; }
+
+    /* resultado + ranking */
+    .result-card{ border:1px solid rgba(211,163,123,.3)!important; background:linear-gradient(135deg, rgba(211,163,123,.12), rgba(211,163,123,.03)); }
+    .rank-badge{ background:linear-gradient(135deg, var(--gold), var(--gold-3)); color:#22150e; border:1px solid rgba(0,0,0,.2); }
+
+    /* pódio estilo exemplo */
+    .podium-wrap{ display:grid; grid-template-columns:1fr; gap:.9rem; }
+    @media(min-width:768px){ .podium-wrap{ grid-template-columns:1fr 1fr 1fr; } }
+    .pedestal{
+      position:relative; border-radius:14px; padding:1rem .9rem .9rem;
+      background:linear-gradient(180deg, rgba(255,255,255,.06) 0%, rgba(255,255,255,.02) 100%);
+      border:1px solid rgba(255,255,255,.06);
+      overflow:hidden; min-height:200px;
+    }
+    .pedestal .topglow{
+      position:absolute; inset:0; pointer-events:none;
+      background: radial-gradient(220px 120px at 50% 0%, rgba(255,255,255,.08), transparent 60%);
+      mix-blend-mode: screen;
+    }
+    .pod-1{ box-shadow: 0 10px 30px rgba(211,163,123,.18); }
+    .pod-2{ box-shadow: 0 10px 30px rgba(207,213,218,.14); }
+    .pod-3{ box-shadow: 0 10px 30px rgba(193,139,90,.14); }
+
+    @keyframes glowGold{0%,100%{box-shadow:0 0 0 rgba(211,163,123,0)}50%{box-shadow:0 0 22px 4px rgba(211,163,123,.65)}}
+    @keyframes glowSilver{0%,100%{box-shadow:0 0 0 rgba(205,213,218,0)}50%{box-shadow:0 0 22px 4px rgba(205,213,218,.65)}}
+    @keyframes glowBronze{0%,100%{box-shadow:0 0 0 rgba(193,139,90,0)}50%{box-shadow:0 0 22px 4px rgba(193,139,90,.65)}}
+    .glow-gold{ border:2px solid var(--gold)!important; animation:glowGold 2.6s ease-in-out infinite; border-radius:14px; }
+    .glow-silver{ border:2px solid var(--silver)!important; animation:glowSilver 2.6s ease-in-out infinite; border-radius:14px; }
+    .glow-bronze{ border:2px solid var(--bronze)!important; animation:glowBronze 2.6s ease-in-out infinite; border-radius:14px; }
+
+    .rune-top img{ width:64px;height:64px; image-rendering:pixelated; border-radius:12px; }
+    .pill{ display:inline-flex; align-items:center; gap:.35rem; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1); border-radius:999px; padding:.2rem .55rem; font-size:.8rem; }
+  </style>
+</head>
+<body>
+
+  <div class="container my-3">
+    <!-- Header -->
+    <div class="card brand-card mb-2">
+      <div class="card-body">
+        <div class="d-flex align-items-center gap-3">
+          <i class="fa-solid fa-hat-wizard fa-xl brand-accent"></i>
+          <div>
+            <h5 class="card-title mb-1 text-light">Exordion • Ranking de Runas & Safezone</h5>
+            <div class="text-light small opacity-75">Paleta #d3a37b • Top3 estilo “pedestal” • UI compacta • Ícones de blanks & runas</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Linha principal: ESQ maior (7) / DIR menor (5) -->
+    <div class="row g-2">
+      <!-- ESQUERDA -->
+      <div class="col-lg-7">
+        <!-- 1) Personagem -->
+        <div class="card brand-card mb-2">
+          <div class="card-body py-2">
+            <div class="d-flex align-items-center justify-content-between">
+              <h6 class="card-title mb-0 text-light">1) Personagem</h6>
+              <span id="spiritBadge" class="badge rounded-pill chip">SP máx: 1000</span>
+            </div>
+            <div class="mt-2 row g-2">
+              <div class="col-12">
+                <label class="form-label text-light">Vocação</label>
+                <select id="vocation" class="form-select">
+                  <option value="Sorcerer">Sorcerer</option>
+                  <option value="Druid">Druid</option>
+                  <option value="Paladin">Paladin</option>
+                  <option value="Knight">Knight</option>
+                  <option value="Master Sorcerer">Master Sorcerer</option>
+                  <option value="Elder Druid">Elder Druid</option>
+                  <option value="Royal Paladin">Royal Paladin</option>
+                  <option value="Elite Knight">Elite Knight</option>
+                </select>
+              </div>
+              <div class="col-12">
+                <label class="form-label text-light">Spirit inicial (opcional)</label>
+                <input id="spiritStart" type="number" class="form-control" min="0" placeholder="Deixe vazio para SP máx da vocação">
+                <div class="form-text text-light">
+                  Se preencher, a simulação inicia com esse SP e vai caindo a cada conjuração. Fator: <code>0.5 + 0.5*(SP/SPmax)</code>.
+                </div>
+              </div>
+              <div class="col-12">
+                <small class="text-light opacity-75">MS, ED, RP e EK usam <strong>SP máx 1000</strong>; demais <strong>500</strong>.</small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2) Itens -->
+        <div class="card brand-card mb-2" id="itemsCard">
+          <div class="card-body">
+            <h6 class="card-title text-light mb-1">2) Itens de regeneração</h6>
+            <p class="text-light opacity-75 mb-2 small">Preço/duração cobrados proporcionalmente ao tempo usado.</p>
+            <div class="table-responsive">
+              <table class="table table-sm align-middle text-light">
+                <thead>
+                  <tr><th>Item</th><th>Qtd</th><th>+MP</th><th>/seg</th><th>Duração (min)</th><th>Preço</th><th></th></tr>
+                </thead>
+                <tbody id="itemsBody"></tbody>
+              </table>
+            </div>
+            <div class="d-flex gap-2">
+              <button id="addItem" class="btn btn-outline-light btn-sm"><i class="fa fa-plus"></i> Adicionar item</button>
+              <button id="clearItems" class="btn btn-outline-light btn-sm">Limpar itens</button>
+            </div>
+            <div class="form-text text-light mt-1">
+              Padrão: <strong>Exordian Boots</strong> (+1 MP/3s) e <strong>Exordian Ring</strong> (+1 MP/4s).
+            </div>
+          </div>
+        </div>
+
+        <!-- 3) Tempo -->
+        <div class="card brand-card">
+          <div class="card-body py-2">
+            <h6 class="card-title text-light mb-1">3) Tempo (para Ranking)</h6>
+            <div class="row g-2">
+              <div class="col-12">
+                <label class="form-label text-light">Tempo de caça (min)</label>
+                <input id="huntMinutes" type="number" class="form-control" min="1" value="60">
+              </div>
+            </div>
+            <div class="mt-2 d-flex gap-2">
+              <button id="compareBtn" class="btn btn-warning text-dark"><i class="fa fa-wand-magic-sparkles"></i> Comparar runas</button>
+              <button id="resetPrices" class="btn btn-outline-light">Limpar preços</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DIREITA -->
+      <div class="col-lg-5">
+        <!-- Blanks -->
+        <div class="card brand-card mb-2">
+          <div class="card-body py-2">
+            <div class="d-flex align-items-center justify-content-between">
+              <h6 class="card-title mb-0 text-light">Tipos de Blank (preço/unidade)</h6>
+              <span class="badge chip">Salvo no navegador</span>
+            </div>
+            <div class="row g-1 mt-1" id="blankTypes"></div>
+          </div>
+        </div>
+
+        <!-- Runas -->
+        <div class="card brand-card">
+          <div class="card-body py-2">
+            <h6 class="card-title mb-0 text-light">Preços por carga (runas)</h6>
+            <div class="row g-1 mt-1" id="runesPriceList"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TABS largura total -->
+    <div class="mt-3">
+      <ul class="nav nav-tabs mb-2" id="rankSafeTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" id="tab-ranking" data-mdb-toggle="tab" data-mdb-target="#pane-ranking" type="button" role="tab" aria-controls="pane-ranking" aria-selected="true">
+            <i class="fa-solid fa-trophy me-1"></i> RANKING
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="tab-safezone" data-mdb-toggle="tab" data-mdb-target="#pane-safezone" type="button" role="tab" aria-controls="pane-safezone" aria-selected="false">
+            <i class="fa-solid fa-shield me-1"></i> SAFEZONE
+          </button>
+        </li>
+      </ul>
+
+      <div class="tab-content" id="rankSafeTabsContent">
+        <!-- RANKING -->
+        <div class="tab-pane fade show active" id="pane-ranking" role="tabpanel" aria-labelledby="tab-ranking">
+          <div class="card brand-card">
+            <div class="card-body">
+              <h6 class="card-title mb-2 text-light">Top 3 & Lista</h6>
+
+              <!-- Pódio estilo exemplo -->
+              <div id="podium" class="podium-wrap mb-2"></div>
+
+              <!-- Lista única coluna -->
+              <div id="resultsList" class="vstack gap-2">
+                <div class="card result-card border-0">
+                  <div class="card-body text-light opacity-75">
+                    Preencha os preços e clique em <em>Comparar runas</em>.
+                  </div>
+                </div>
+              </div>
+
+              <div id="bestBadge" class="mt-2"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SAFEZONE -->
+        <div class="tab-pane fade" id="pane-safezone" role="tabpanel" aria-labelledby="tab-safezone">
+          <div class="card brand-card">
+            <div class="card-body">
+              <div class="d-flex align-items-center justify-content-between">
+                <h6 class="card-title text-light mb-0">Calculadora de Safezone</h6>
+                <span class="badge chip">1 coin = 10 points</span>
+              </div>
+
+              <div class="row g-2 mt-1">
+                <div class="col-12 col-md-4">
+                  <label class="form-label text-light">Preço do coin</label>
+                  <div class="input-group input-group-sm">
+                    <span class="input-group-text">gps</span>
+                    <input id="coinPrice" type="number" class="form-control" min="0" step="1" placeholder="Ex.: 1000">
+                  </div>
+                </div>
+                <div class="col-12 col-md-4">
+                  <label class="form-label text-light">Plano Safezone</label>
+                  <select id="safeTier" class="form-select form-select-sm">
+                    <option value="900">30 dias (900 pts)</option>
+                    <option value="250">7 dias (250 pts)</option>
+                    <option value="150">3 dias (150 pts)</option>
+                    <option value="90">24 horas (90 pts)</option>
+                    <option value="50">12 horas (50 pts)</option>
+                    <option value="30">6 horas (30 pts)</option>
+                  </select>
+                </div>
+                <div class="col-12 col-md-4">
+                  <label class="form-label text-light">Runa para simular</label>
+                  <select id="safeRuneSelect" class="form-select form-select-sm">
+                    <option value="best">Melhor por lucro/h</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="row g-2 mt-1">
+                <div class="col-12 col-md-4">
+                  <label class="form-label text-light">Tempo runando (opcional)</label>
+                  <div class="input-group input-group-sm">
+                    <input id="runTime" type="number" class="form-control" min="0" step="1" placeholder="Ex.: 120">
+                    <select id="runTimeUnit" class="input-group-text">
+                      <option value="min">min</option>
+                      <option value="h">h</option>
+                    </select>
+                  </div>
+                  <div class="form-text text-light">Usado só para mostrar <em>lucro após pagar</em>.</div>
+                </div>
+              </div>
+
+              <div class="mt-2 d-flex gap-2">
+                <button id="calcSafeBtn" class="btn btn-warning text-dark">
+                  <i class="fa-solid fa-shield"></i> Calcular Safezone
+                </button>
+                <small class="text-light opacity-75">Fórmula: <code>(pontos × preçoCoin) / 10</code></small>
+              </div>
+
+              <div id="safeResult" class="mt-2"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /tabs -->
+  </div>
+
+<script>
+/* ================== CONSTANTES (sem duplicação) ================== */
+const VOCATION_REGEN = {
+  "Sorcerer":        { mpPer: 2, mpEverySec: 4 },
+  "Druid":           { mpPer: 2, mpEverySec: 4 },
+  "Paladin":         { mpPer: 2, mpEverySec: 6 },
+  "Knight":          { mpPer: 2, mpEverySec: 8 },
+  "Master Sorcerer": { mpPer: 2, mpEverySec: 3 },
+  "Elder Druid":     { mpPer: 2, mpEverySec: 3 },
+  "Royal Paladin":   { mpPer: 2, mpEverySec: 4 },
+  "Elite Knight":    { mpPer: 2, mpEverySec: 6 },
+};
+const PROMOTED = new Set(["Master Sorcerer", "Elder Druid", "Royal Paladin", "Elite Knight"]);
+
+const BLANK_TYPES = [
+  { id:"gray",   name:"Gray Blank Rune",   defaultPrice:50,  icon:"assets/images/gray_blankrune.png"   },
+  { id:"red",    name:"Red Blank Rune",    defaultPrice:30,  icon:"assets/images/red_blankrune.png"    },
+  { id:"blue",   name:"Blue Blank Rune",   defaultPrice:30,  icon:"assets/images/blue_blankrune.png"   },
+  { id:"purple", name:"Purple Blank Rune", defaultPrice:20,  icon:"assets/images/purple_blankrune.png" },
+  { id:"green",  name:"Green Blank Rune",  defaultPrice:20,  icon:"assets/images/green_blankrune.png"  },
+  { id:"yellow", name:"Yellow Blank Rune", defaultPrice:40,  icon:"assets/images/yellow_blankrune.png" },
+  { id:"cyan",   name:"Cyan Blank Rune",   defaultPrice:30,  icon:"assets/images/cyan_blankrune.png"   },
+];
+
+const SPELLS = [
+  { id:"animdead", name:"Animate Dead", mana:300, spirit:4, charges:2, blankType:"purple", vocs:["Sorcerer","Druid","Master Sorcerer","Elder Druid"] },
+  { id:"antidote", name:"Antidote Rune", mana:50, spirit:2, charges:1,  blankType:"gray",  vocs:["Druid","Elder Druid"] },
+  { id:"convince", name:"Convince Creature", mana:100, spirit:4, charges:1, blankType:"green", vocs:["Druid","Elder Druid"] },
+  { id:"chameleon", name:"Chameleon", mana:150, spirit:4, charges:3, blankType:"green", vocs:["Druid","Elder Druid"] },
+
+  { id:"df", name:"Destroy Field", mana:60, spirit:3, charges:3, blankType:"gray",
+    vocs:["Sorcerer","Druid","Paladin","Master Sorcerer","Elder Druid","Royal Paladin"] },
+  { id:"desintegrate", name:"Desintegrate", mana:100, spirit:3, charges:3, blankType:"purple",
+    vocs:["Sorcerer","Druid","Paladin","Master Sorcerer","Elder Druid","Royal Paladin"] },
+
+  { id:"firefield", name:"Fire Field", mana:60, spirit:2, charges:3, blankType:"red",
+    vocs:["Sorcerer","Druid","Master Sorcerer","Elder Druid"] },
+  { id:"firewall", name:"Fire Wall", mana:200, spirit:5, charges:4, blankType:"red",
+    vocs:["Sorcerer","Druid","Master Sorcerer","Elder Druid"] },
+  { id:"firebomb", name:"Fire Bomb", mana:150, spirit:5, charges:2, blankType:"red",
+    vocs:["Sorcerer","Druid","Master Sorcerer","Elder Druid"] },
+
+  { id:"poisonfield", name:"Poison Field", mana:50, spirit:2, charges:3, blankType:"green",
+    vocs:["Sorcerer","Druid","Master Sorcerer","Elder Druid"] },
+  { id:"poisonwall", name:"Poison Wall", mana:160, spirit:5, charges:4, blankType:"green",
+    vocs:["Sorcerer","Druid","Master Sorcerer","Elder Druid"] },
+  { id:"poisonbomb", name:"Poison Bomb", mana:130, spirit:5, charges:3, blankType:"green",
+    vocs:["Druid","Elder Druid"] },
+
+  { id:"energyfield", name:"Energy Field", mana:80, spirit:4, charges:3, blankType:"cyan",
+    vocs:["Sorcerer","Druid","Master Sorcerer","Elder Druid"] },
+  { id:"energywall", name:"Energy Wall", mana:250, spirit:5, charges:4, blankType:"cyan",
+    vocs:["Sorcerer","Druid","Master Sorcerer","Elder Druid"] },
+  { id:"energybomb", name:"Energy Bomb", mana:220, spirit:5, charges:2, blankType:"cyan",
+    vocs:["Sorcerer","Master Sorcerer"] },
+
+  { id:"mw", name:"Magic Wall", mana:250, spirit:8, charges:3, blankType:"purple",
+    vocs:["Sorcerer","Master Sorcerer"] },
+
+  { id:"lmm", name:"Light Magic Missile", mana:30, spirit:2, charges:10, blankType:null,
+    vocs:["Sorcerer","Druid","Paladin","Master Sorcerer","Elder Druid","Royal Paladin"] },
+  { id:"hmm", name:"Heavy Magic Missile", mana:70, spirit:4, charges:5, blankType:"yellow",
+    vocs:["Sorcerer","Druid","Paladin","Master Sorcerer","Elder Druid","Royal Paladin"] },
+
+  { id:"fireball", name:"Fireball", mana:60, spirit:4, charges:6, blankType:"red",
+    vocs:["Sorcerer","Druid","Paladin","Master Sorcerer","Elder Druid","Royal Paladin"] },
+  { id:"gfb", name:"Great Fireball", mana:120, spirit:7, charges:2, blankType:"red",
+    vocs:["Sorcerer","Master Sorcerer","Druid","Elder Druid"] },
+
+  { id:"avalanche", name:"Avalanche", mana:140, spirit:7, charges:2, blankType:"blue",
+    vocs:["Druid","Elder Druid"] },
+  { id:"icicle", name:"Icicle Rune", mana:80, spirit:4, charges:5, blankType:"blue",
+    vocs:["Druid","Elder Druid"] },
+
+  { id:"explo", name:"Explosion", mana:180, spirit:7, charges:3, blankType:"purple",
+    vocs:["Sorcerer","Druid","Master Sorcerer","Elder Druid"] },
+  { id:"envenom", name:"Envenom Rune", mana:120, spirit:5, charges:2, blankType:"green",
+    vocs:["Sorcerer","Master Sorcerer","Druid","Elder Druid"] },
+  { id:"soulfire", name:"Soulfire", mana:150, spirit:6, charges:3, blankType:"red",
+    vocs:["Sorcerer","Druid","Master Sorcerer","Elder Druid"] },
+  { id:"sd", name:"Sudden Death", mana:220, spirit:10, charges:1, blankType:"red",
+    vocs:["Sorcerer","Master Sorcerer"] },
+
+  { id:"uh", name:"Ultimate Healing Rune", mana:100, spirit:6, charges:1, blankType:"gray", vocs:["Druid","Elder Druid"] },
+  { id:"ih", name:"Intense Healing Rune",  mana:60,  spirit:3, charges:2, blankType:"gray", vocs:["Druid","Elder Druid"] },
+
+  { id:"conj_arrow", name:"Conjure Arrow", mana:40,  spirit:2, charges:15, blankType:null, vocs:["Paladin","Royal Paladin"] },
+  { id:"conj_bolt",  name:"Conjure Bolt",  mana:70,  spirit:3, charges:10, blankType:null, vocs:["Paladin","Royal Paladin"] },
+  { id:"conj_poison_arrow", name:"Conjure Poison Arrow", mana:70, spirit:2, charges:5, blankType:null, vocs:["Paladin","Royal Paladin"] },
+  { id:"conj_expl_arrow",   name:"Conjure Explosive Arrow", mana:120, spirit:5, charges:8, blankType:null, vocs:["Paladin","Royal Paladin"] },
+  { id:"conj_sniper", name:"Conjure Sniper Arrow", mana:150, spirit:4, charges:8, blankType:null, vocs:["Paladin","Royal Paladin"] },
+  { id:"conj_power_bolt", name:"Conjure Power Bolt", mana:200, spirit:8, charges:6, blankType:null, vocs:["Royal Paladin"] },
+  { id:"conj_diamond", name:"Conjure Diamond Arrow", mana:500, spirit:10, charges:12, blankType:null, vocs:["Paladin","Royal Paladin"] },
+];
+
+const PRICE_KEY = "exordion_prices_by_charge_v7";
+const BLANK_PRICE_KEY = "exordion_blank_prices_v1";
+
+/* ================== DOM ================== */
+const vocationEl = document.getElementById('vocation');
+const spiritBadgeEl = document.getElementById('spiritBadge');
+const spiritStartEl = document.getElementById('spiritStart');
+
+const itemsBody = document.getElementById('itemsBody');
+const addItemBtn = document.getElementById('addItem');
+const clearItemsBtn = document.getElementById('clearItems');
+
+const huntMinutesEl = document.getElementById('huntMinutes');
+const compareBtn = document.getElementById('compareBtn');
+const resetPricesBtn = document.getElementById('resetPrices');
+
+const blanksWrap = document.getElementById('blankTypes');
+const pricesWrap = document.getElementById('runesPriceList');
+
+const resultsList = document.getElementById('resultsList');
+const bestBadge = document.getElementById('bestBadge');
+const podiumWrap = document.getElementById('podium');
+
+const coinPriceEl = document.getElementById('coinPrice');
+const safeTierEl = document.getElementById('safeTier');
+const safeRuneSelEl = document.getElementById('safeRuneSelect');
+const calcSafeBtn = document.getElementById('calcSafeBtn');
+const safeResultEl = document.getElementById('safeResult');
+const runTimeEl = document.getElementById('runTime');
+const runTimeUnitEl = document.getElementById('runTimeUnit');
+
+/* ================== ITENS ================== */
+let items = [
+  { name:"Exordian Boots", qty:1, plusMp:1, perSec:3, durationMin:null, price:null },
+  { name:"Exordian Ring",  qty:1, plusMp:1, perSec:4, durationMin:null, price:null },
+];
+function itemRow(idx, it){
+  return `
+    <tr data-idx="${idx}">
+      <td><input class="form-control form-control-sm it-name" value="${it.name??''}" placeholder="Nome"/></td>
+      <td style="max-width:70px"><input type="number" class="form-control form-control-sm it-qty" min="0" value="${it.qty??1}"/></td>
+      <td style="max-width:80px"><input type="number" class="form-control form-control-sm it-plus" min="0" step="0.1" value="${it.plusMp??1}"/></td>
+      <td style="max-width:80px"><input type="number" class="form-control form-control-sm it-persec" min="1" step="0.1" value="${it.perSec??3}"/></td>
+      <td style="max-width:110px"><input type="number" class="form-control form-control-sm it-dur" min="0" step="1" value="${it.durationMin??''}" placeholder="—"/></td>
+      <td style="max-width:120px"><input type="number" class="form-control form-control-sm it-price" min="0" step="1" value="${it.price??''}" placeholder="—"/></td>
+      <td class="text-end"><button class="btn btn-sm btn-outline-light it-del"><i class="fa fa-trash"></i></button></td>
+    </tr>`;
+}
+function renderItems(){
+  itemsBody.innerHTML = items.length ? items.map((it,i)=>itemRow(i,it)).join('') :
+    `<tr><td colspan="7" class="text-light opacity-75">Nenhum item adicionado.</td></tr>`;
+}
+itemsBody.addEventListener('input', e=>{
+  const tr=e.target.closest('tr[data-idx]'); if(!tr) return;
+  const i=+tr.dataset.idx, it=items[i];
+  if(e.target.classList.contains('it-name')) it.name=e.target.value;
+  if(e.target.classList.contains('it-qty')) it.qty=+e.target.value;
+  if(e.target.classList.contains('it-plus')) it.plusMp=+e.target.value;
+  if(e.target.classList.contains('it-persec')) it.perSec=+e.target.value;
+  if(e.target.classList.contains('it-dur')) it.durationMin = e.target.value===''?null:+e.target.value;
+  if(e.target.classList.contains('it-price')) it.price = e.target.value===''?null:+e.target.value;
+});
+itemsBody.addEventListener('click', e=>{
+  if(e.target.closest('.it-del')){ const tr=e.target.closest('tr[data-idx]'); items.splice(+tr.dataset.idx,1); renderItems(); }
+});
+addItemBtn.addEventListener('click', ()=>{ items.push({name:"Item",qty:1,plusMp:1,perSec:3}); renderItems(); });
+clearItemsBtn.addEventListener('click', ()=>{ items=[]; renderItems(); });
+renderItems();
+
+/* ================== BLANKS ================== */
+function loadBlankPrices(){ try{return JSON.parse(localStorage.getItem(BLANK_PRICE_KEY)||"{}");}catch{return{};} }
+function saveBlankPrices(map){ localStorage.setItem(BLANK_PRICE_KEY, JSON.stringify(map)); }
+function renderBlankTypeInputs(){
+  const saved=loadBlankPrices();
+  blanksWrap.innerHTML = BLANK_TYPES.map(bt=>{
+    const key=`blank_${bt.id}`, val = saved[key] ?? bt.defaultPrice;
+    return `
+      <div class="col-12 col-sm-6">
+        <div class="d-flex align-items-center justify-content-between gap-2">
+          <div class="blank-pill">
+            <img src="${bt.icon}" alt="${bt.name}" onerror="this.style.display='none'"/>
+            <span class="text-light small text-truncate" title="${bt.name}">${bt.name}</span>
+          </div>
+          <div class="input-group input-group-sm blank-price">
+            <span class="input-group-text">gps</span>
+            <input type="number" min="0" step="1" class="form-control blank-input" data-key="${key}" value="${val}">
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+  blanksWrap.querySelectorAll('.blank-input').forEach(inp=>{
+    inp.addEventListener('input', ()=>{
+      const map=loadBlankPrices(); map[inp.dataset.key]=+inp.value||0; saveBlankPrices(map);
+    });
+  });
+}
+renderBlankTypeInputs();
+
+/* ================== RUNAS: preços por carga ================== */
+function loadPrices(){ try{return JSON.parse(localStorage.getItem(PRICE_KEY)||"{}");}catch{return{};} }
+function savePrices(map){ localStorage.setItem(PRICE_KEY, JSON.stringify(map)); }
+function spellsForVoc(voc){ return SPELLS.filter(s=>s.vocs.includes(voc)); }
+function runeImg(name){ return `assets/images/${name.toLowerCase().replace(/\s+/g,'')}.gif`; }
+
+function renderPriceInputs(){
+  const voc=vocationEl.value, list=spellsForVoc(voc), map=loadPrices();
+  pricesWrap.innerHTML = list.map(spell=>{
+    const key=`price_${spell.id}`, val = map[key] ?? '';
+    return `
+      <div class="col-12 col-sm-6 price-row">
+        <div class="input-group input-group-sm">
+          <span class="input-group-text" title="${spell.name}">
+            <img class="rune-icon" src="${runeImg(spell.name)}" onerror="this.style.display='none'">
+          </span>
+          <input type="number" min="0" step="1" class="form-control price-input" data-key="${key}" placeholder="${spell.name} — preço por carga" value="${val}">
+          <span class="input-group-text">/c</span>
+        </div>
+      </div>`;
+  }).join('') || `<div class="text-light opacity-75">Sem runas para esta vocação.</div>`;
+  pricesWrap.querySelectorAll('.price-input').forEach(inp=>{
+    inp.addEventListener('input', ()=>{
+      const m=loadPrices();
+      if(inp.value==='') delete m[inp.dataset.key]; else m[inp.dataset.key]=+inp.value;
+      savePrices(m);
+    });
+  });
+}
+vocationEl.addEventListener('change', ()=>{ updateSpiritBadge(); renderPriceInputs(); });
+renderPriceInputs();
+
+/* ================== SIMULAÇÃO ================== */
+function spiritMaxForVoc(voc){ return PROMOTED.has(voc) ? 1000 : 500; }
+function updateSpiritBadge(){ spiritBadgeEl.textContent = `SP máx: ${spiritMaxForVoc(vocationEl.value)}`; }
+updateSpiritBadge();
+
+function baseMpPerSec(voc){ const {mpPer, mpEverySec}=VOCATION_REGEN[voc]; return mpPer/mpEverySec; }
+function itemsMpPerSec(){
+  return items.reduce((acc,it)=>acc + ( (+it.qty||0) * (+it.plusMp||0) / Math.max(1,+it.perSec||1) ),0);
+}
+function itemsCostFor(minutes){
+  let total=0;
+  for(const it of items){
+    const qty=+it.qty||0; if(!qty) continue;
+    if(it.price!=null && it.durationMin!=null && it.durationMin>0){
+      const frac=Math.min(1, minutes/it.durationMin);
+      total += qty*it.price*frac;
+    }
+  }
+  return total;
+}
+function getBlankPriceById(id){
+  if(id==null) return 0;
+  const map=loadBlankPrices(), key=`blank_${id}`;
+  const fallback=BLANK_TYPES.find(b=>b.id===id)?.defaultPrice??0;
+  return map[key] ?? fallback;
+}
+
+function simulateSpell(spell, minutes, voc, spiritStartOpt){
+  const secs=Math.max(1,Math.round(minutes*60));
+  const spMax=spiritMaxForVoc(voc);
+  let start=(spiritStartOpt===''||spiritStartOpt===null||isNaN(+spiritStartOpt))?spMax:Math.max(0,Math.min(spMax,+spiritStartOpt));
+  let sp=start, mana=0, casts=0;
+  const baseSec=baseMpPerSec(voc), itemsSec=itemsMpPerSec();
+
+  for(let t=0;t<secs;t++){
+    const factor=0.5+0.5*(sp/spMax);
+    mana += (baseSec+itemsSec)*factor;
+    let guard=0;
+    while(mana>=spell.mana && guard<1000){
+      mana-=spell.mana; sp=Math.max(0, sp - spell.spirit); casts++; guard++;
+    }
+  }
+  const totalCharges=casts*spell.charges;
+  const priceMap=loadPrices(); const pricePerCharge=+priceMap[`price_${spell.id}`]||0;
+  const revenue=totalCharges*pricePerCharge;
+  const blanksCost=(spell.blankType? casts*getBlankPriceById(spell.blankType) : 0);
+  const itemsCost=itemsCostFor(minutes);
+  const profit=revenue - blanksCost - itemsCost;
+  const profitPerHour=profit * (60/minutes);
+  const chargesPerHour=(totalCharges/minutes)*60;
+  const profitPerCharge= totalCharges>0 ? (profit/totalCharges) : 0;
+
+  return {casts,totalCharges,revenue,blanksCost,itemsCost,profit,profitPerHour,chargesPerHour,profitPerCharge,spFinal:Math.round(sp),spStart:start};
+}
+
+/* ================== RENDER (pódio e lista) ================== */
+let lastRows=[];
+function fmt(n){ return new Intl.NumberFormat('pt-BR',{maximumFractionDigits:0}).format(Math.round(n)); }
+function fmtMoney(n){ return new Intl.NumberFormat('pt-BR').format(Math.round(n)); }
+function blankName(id){ return BLANK_TYPES.find(b=>b.id===id)?.name ?? '—'; }
+
+function podiumCard(entry, pos, glowClass){
+  const {spell, calc} = entry;
+  const voc = vocationEl.value;
+  const icon = pos===1?'fa-trophy':(pos===2?'fa-medal':'fa-award');
+  // base color para rodapé do pedestal
+  const baseColor = pos===1?'var(--gold)':(pos===2?'var(--silver)':'var(--bronze)');
+  return `
+    <div class="pedestal pod-${pos} ${glowClass}">
+      <div class="topglow"></div>
+      <div class="d-flex flex-column align-items-center text-center gap-2">
+        <div class="rune-top">
+          <img src="${runeImg(spell.name)}" alt="${spell.name}" onerror="this.style.display='none'"/>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <i class="fa-solid ${icon}"></i>
+          <div class="fw-bold">${pos}º • ${spell.name}</div>
+        </div>
+        <div class="small text-light opacity-75">Vocação: <span class="pill"><i class="fa fa-user-ninja"></i> ${voc}</span></div>
+        <div class="d-flex flex-wrap justify-content-center gap-2">
+          <span class="pill"><i class="fa fa-coins"></i> Lucro/h: <strong>${fmt(calc.profitPerHour)}</strong></span>
+          <span class="pill"><i class="fa fa-bolt"></i> Cargas/h: <strong>${fmt(calc.chargesPerHour)}</strong></span>
+          <span class="pill"><i class="fa fa-droplet"></i> SP: ${calc.spStart}→${calc.spFinal}</span>
+        </div>
+      </div>
+      <div style="height:10px; width:100%; border-radius:0 0 14px 14px; margin-top:.6rem; background:linear-gradient(90deg, ${baseColor}, transparent); opacity:.5;"></div>
+    </div>`;
+}
+function renderPodium(rows){
+  const top=rows.slice(0,3);
+  const order=[1,0,2]; // 2º - 1º - 3º visual
+  const glow=['glow-silver','glow-gold','glow-bronze'];
+  let html='';
+  for(let i=0;i<order.length;i++){ const idx=order[i]; if(top[idx]) html+=podiumCard(top[idx], idx+1, glow[i]); }
+  podiumWrap.innerHTML = `<div class="podium-wrap">${html}</div>`;
+}
+
+function resultCard(row, idx, extraGlowClass){
+  const c=row.calc, name=row.spell.name;
+  return `
+    <div class="card result-card ${extraGlowClass||''}">
+      <div class="card-body">
+        <div class="d-flex align-items-center justify-content-between">
+          <div class="d-flex align-items-center gap-2">
+            <img src="${runeImg(name)}" class="rune-icon" style="width:22px;height:22px;image-rendering:pixelated" onerror="this.style.display='none'">
+            <span class="badge rank-badge">${idx+1}</span>
+            <div>
+              <div class="h6 mb-0 text-light">${name}</div>
+              <div class="small text-light opacity-75">${row.spell.blankType ? blankName(row.spell.blankType) : 'sem blank'}</div>
+            </div>
+          </div>
+          <div class="text-end">
+            <div class="fw-bold brand-accent">Lucro/h: ${fmt(c.profitPerHour)}</div>
+            <div class="small text-light">Lucro: ${fmt(c.profit)}</div>
+          </div>
+        </div>
+
+        <hr class="my-2"/>
+
+        <div class="row text-center small text-light">
+          <div class="col-6 col-md-3"><div class="opacity-75">Casts</div><div class="fw-semibold">${fmt(c.casts)}</div></div>
+          <div class="col-6 col-md-3"><div class="opacity-75">Cargas</div><div class="fw-semibold">${fmt(c.totalCharges)}</div></div>
+          <div class="col-6 col-md-3 mt-2 mt-md-0"><div class="opacity-75">Receita</div><div class="fw-semibold">${fmt(c.revenue)}</div></div>
+          <div class="col-6 col-md-3 mt-2 mt-md-0"><div class="opacity-75">SP inicial → final</div><div class="fw-semibold">${c.spStart} → ${c.spFinal}</div></div>
+        </div>
+
+        <div class="row text-center small mt-2 text-light">
+          <div class="col-6"><div class="opacity-75">Custo blanks</div><div class="fw-semibold">${fmt(c.blanksCost)}</div></div>
+          <div class="col-6"><div class="opacity-75">Custo itens</div><div class="fw-semibold">${fmt(c.itemsCost)}</div></div>
+        </div>
+      </div>
+    </div>`;
+}
+function renderResults(rows){
+  if(!rows.length){
+    resultsList.innerHTML = `<div class="card result-card border-0"><div class="card-body text-light opacity-75">Nada a exibir.</div></div>`;
+    bestBadge.innerHTML=''; podiumWrap.innerHTML=''; lastRows=[]; refreshSafezoneRuneList(); return;
+  }
+  rows.sort((a,b)=>b.calc.profitPerHour - a.calc.profitPerHour);
+  lastRows=rows;
+  renderPodium(rows);
+  const glow=['glow-gold','glow-silver','glow-bronze'];
+  resultsList.innerHTML = rows.map((r,i)=>resultCard(r,i, i<3?glow[i]:'' )).join('');
+  const best=rows[0];
+  bestBadge.innerHTML = `
+    <div class="alert alert-warning text-dark mb-0" style="border:1px solid rgba(211,163,123,.45)">
+      <i class="fa fa-trophy me-2"></i>
+      Melhor por lucro/h: <strong>${best.spell.name}</strong> — <strong>${fmt(best.calc.profitPerHour)}</strong> por hora
+    </div>`;
+  refreshSafezoneRuneList();
+}
+
+/* ================== SAFEZONE ================== */
+function safezoneCost(points, coinPrice){ return ((+points||0) * (+coinPrice||0)) / 10; }
+function makeSafezoneReport(row, coinPrice, points, runTimeHoursOpt){
+  const c=row.calc;
+  const szCost=safezoneCost(points, coinPrice);
+  const profitH=c.profitPerHour;
+  const hoursByProfitH = profitH>0 ? (szCost/profitH) : Infinity;
+  const daysByProfitH = isFinite(hoursByProfitH) ? (hoursByProfitH/24) : Infinity;
+  let leftoverAfter=null;
+  if(runTimeHoursOpt!=null && runTimeHoursOpt>0){
+    const gross=profitH*runTimeHoursOpt; leftoverAfter=Math.round(gross - szCost);
+  }
+  return { runeName: row.spell.name, szCost, profitH, hoursByProfitH, daysByProfitH, leftoverAfter };
+}
+function hhmm(hoursFloat){
+  if(!isFinite(hoursFloat)) return '∞';
+  const totalMin=Math.round(hoursFloat*60), h=Math.floor(totalMin/60), m=totalMin%60;
+  return `${h}h ${m}m`;
+}
+function refreshSafezoneRuneList(){
+  const keep=(safeRuneSelEl && safeRuneSelEl.value) || 'best';
+  if(!safeRuneSelEl) return;
+  safeRuneSelEl.innerHTML = `<option value="best">Melhor por lucro/h</option>` + lastRows.map(r=>`<option value="${r.spell.id}">${r.spell.name}</option>`).join('');
+  const opt=Array.from(safeRuneSelEl.options).find(o=>o.value===keep);
+  safeRuneSelEl.value = opt ? keep : 'best';
+}
+function renderSafezoneOutput(rep, points, coinPrice){
+  const afterLine = (rep.leftoverAfter==null)
+    ? `<span class="text-light opacity-75">Informe “Tempo runando” para ver o <em>lucro após pagar</em>.</span>`
+    : (rep.leftoverAfter>=0
+        ? `<span class="text-success fw-semibold">Lucro após pagar: +${fmtMoney(rep.leftoverAfter)} gps</span>`
+        : `<span class="text-danger fw-semibold">Déficit após pagar: ${fmtMoney(-rep.leftoverAfter)} gps</span>`);
+  const warn = rep.profitH<=0 ? `<div class="alert alert-danger mt-2 mb-0">Com <strong>${rep.runeName}</strong> não há lucro/h. A safe não será paga apenas com essa runa.</div>` : '';
+  safeResultEl.innerHTML = `
+    <div class="card result-card"><div class="card-body">
+      <div class="d-flex align-items-center justify-content-between">
+        <div class="h6 mb-0 text-light">Safezone selecionada</div>
+        <span class="badge chip">Pontos: ${points} • Coin: ${fmtMoney(coinPrice)} gps</span>
+      </div>
+      <div class="mt-1 text-light">Custo da Safezone:
+        <strong class="brand-accent">${fmtMoney(rep.szCost)} gps</strong>
+        <div class="small opacity-75">Fórmula: (pontos × preçoCoin) / 10</div>
+      </div>
+      <hr class="my-2"/>
+      <div class="row row-cols-1 row-cols-md-3 g-2 text-light">
+        <div class="col"><div class="small opacity-75">Runa</div><div class="fw-semibold">${rep.runeName}</div></div>
+        <div class="col"><div class="small opacity-75">Lucro/h</div><div class="fw-semibold">${fmtMoney(rep.profitH)} gps/h</div></div>
+        <div class="col"><div class="small opacity-75">Tempo p/ pagar</div><div class="fw-semibold">${hhmm(rep.hoursByProfitH)} • ${rep.daysByProfitH===Infinity?'∞':rep.daysByProfitH.toFixed(2)} dias</div></div>
+      </div>
+      <div class="mt-1 text-light">${afterLine}</div>
+      ${warn}
+    </div></div>`;
+}
+
+/* ================== AÇÕES ================== */
+function renderAll(){ renderBlankTypeInputs(); renderPriceInputs(); }
+resetPricesBtn.addEventListener('click', ()=>{ localStorage.removeItem(PRICE_KEY); renderPriceInputs(); });
+
+compareBtn.addEventListener('click', ()=>{
+  const minutes=Math.max(1, +huntMinutesEl.value||60);
+  const voc=vocationEl.value;
+  const spStart=spiritStartEl.value;
+  const list=spellsForVoc(voc);
+  if(!list.length){ renderResults([]); return; }
+  const rows=list.map(spell=>({spell, calc: simulateSpell(spell, minutes, voc, spStart)}));
+  renderResults(rows);
+});
+
+vocationEl.addEventListener('change', ()=>{
+  updateSpiritBadge();
+  const spMax=spiritMaxForVoc(vocationEl.value);
+  if(spiritStartEl.value){
+    const v=Math.max(0, Math.min(spMax, +spiritStartEl.value));
+    spiritStartEl.value = isNaN(v)?'':v;
+  }
+});
+
+calcSafeBtn.addEventListener('click', ()=>{
+  const coinPrice=+coinPriceEl.value||0;
+  const points=+safeTierEl.value||0;
+  if(!coinPrice){ safeResultEl.innerHTML=`<div class="alert alert-danger mb-0">Informe o <strong>preço do coin</strong> para calcular.</div>`; return; }
+  if(!lastRows.length){ safeResultEl.innerHTML=`<div class="alert alert-info mb-0">Primeiro gere o ranking em <strong>RANKING ▸ Comparar runas</strong>.</div>`; return; }
+  const sel=safeRuneSelEl.value;
+  const row = (sel==='best') ? lastRows[0] : (lastRows.find(r=>r.spell.id===sel) || lastRows[0]);
+  let runH=null;
+  if(runTimeEl.value){ const v=Math.max(0,+runTimeEl.value); runH = (runTimeUnitEl.value==='h')?v:(v/60); }
+  const rep=makeSafezoneReport(row, coinPrice, points, runH);
+  renderSafezoneOutput(rep, points, coinPrice);
+});
+
+/* inicial */
+renderAll();
+</script>
+</body>
+</html>
