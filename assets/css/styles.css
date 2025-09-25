@@ -93,6 +93,12 @@ html[data-mdb-theme="light"] .blank-pill{ background:#fff; border-color:var(--li
 .price-row img.rune-icon{ width:18px; height:18px; image-rendering:pixelated; margin-right:.4rem; }
 .price-row .name{ font-size:.93rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
+/* ITENS — tabela compacta */
+#itemsCard table thead th{ font-weight:700; }
+#itemsCard .form-control.form-control-sm{ padding:.3rem .45rem; }
+#itemsCard .btn.btn-outline-light.btn-sm{ border-color:rgba(255,255,255,.35); }
+html[data-mdb-theme="light"] #itemsCard .btn.btn-outline-light.btn-sm{ color:#111; border-color:var(--light-border); }
+
 /* PÓDIO */
 .podium-wrap{ display:grid; grid-template-columns:1fr; gap:1rem; }
 @media (min-width: 992px){ .podium-wrap{ grid-template-columns:1fr 1.2fr 1fr; } }
@@ -131,9 +137,6 @@ html[data-mdb-theme="light"] .placeholder-box{ background:#fff; border-color:var
 
 /* botão comparar maior + margem */
 .btn-compare{ padding:.95rem 1.25rem; font-size:1.05rem; margin-bottom:90px; }
-
-/* botão reset removido (mantido seletor se usarem) */
-.btn-reset{ display:none !important; }
 
 /* PIX banner modal — FUNDO SÓLIDO */
 .pix-banner{

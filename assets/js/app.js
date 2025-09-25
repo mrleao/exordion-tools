@@ -34,7 +34,7 @@ const BLANK_TYPES = [
   { id:"cyan",   name:"Cyan Blank Rune",   defaultPrice:30,  icon:"assets/images/cyan_blankrune.png"   },
 ];
 
-/* Correções de blanks:
+/* Blanks corrigidos:
    HMM -> purple, MW -> yellow, Energy Bomb -> gray, SD -> gray */
 const SPELLS = [
   { id:"animdead", name:"Animate Dead", mana:300, spirit:4, charges:2, blankType:"purple", vocs:["Sorcerer","Druid","Master Sorcerer","Elder Druid"] },
@@ -109,7 +109,7 @@ const SPELLS = [
   { id:"conj_diamond", name:"Conjure Diamond Arrow", mana:500, spirit:10, charges:12, blankType:null, vocs:["Paladin","Royal Paladin"] },
 ];
 
-/* ===== Safezone tiers (points + rótulo) ===== */
+/* Safezone tiers */
 const SAFEZONE_TIERS = [
   { id: "30d", label: "30 dias — 900 points", points: 900, durationHours: 30*24 },
   { id: "7d",  label: "7 dias — 250 points",  points: 250, durationHours: 7*24 },
@@ -147,6 +147,56 @@ const safeResultEl = document.getElementById('safeResult');
 
 const copyPixBtn = document.getElementById('copyPix');
 const copyMsg = document.getElementById('copyMsg');
+
+/* ====== DOM Itens ====== */
+const itemsBody = document.getElementById('itemsBody');
+const addItemBtn = document.getElementById('addItem');
+const clearItemsBtn = document.getElementById('clearItems');
+
+/* ================== ITENS (estado + UI) ================== */
+let items = [
+  { name:"Exordian Boots", qty:1, plusMp:1, perSec:3, durationMin:null, price:null },
+  { name:"Exordian Ring",  qty:1, plusMp:1, perSec:4, durationMin:null, price:null },
+];
+
+function itemRow(idx, it){
+  return `
+    <tr data-idx="${idx}">
+      <td><input class="form-control form-control-sm it-name" value="${it.name??''}" placeholder="Nome"/></td>
+      <td><input type="number" class="form-control form-control-sm it-qty" min="0" value="${it.qty??1}"/></td>
+      <td><input type="number" class="form-control form-control-sm it-plus" min="0" step="0.1" value="${it.plusMp??1}"/></td>
+      <td><input type="number" class="form-control form-control-sm it-persec" min="1" step="0.1" value="${it.perSec??3}"/></td>
+      <td><input type="number" class="form-control form-control-sm it-dur" min="0" step="1" value="${it.durationMin??''}" placeholder="—"/></td>
+      <td><input type="number" class="form-control form-control-sm it-price" min="0" step="1" value="${it.price??''}" placeholder="—"/></td>
+      <td class="text-end"><button class="btn btn-sm btn-outline-light it-del"><i class="fa fa-trash"></i></button></td>
+    </tr>`;
+}
+function renderItems(){
+  if(!itemsBody) return;
+  itemsBody.innerHTML = items.length ? items.map((it,i)=>itemRow(i,it)).join('')
+    : `<tr><td colspan="7" class="muted-sub">Nenhum item adicionado.</td></tr>`;
+}
+if (itemsBody){
+  itemsBody.addEventListener('input', e=>{
+    const tr=e.target.closest('tr[data-idx]'); if(!tr) return;
+    const i=+tr.dataset.idx, it=items[i];
+    if(e.target.classList.contains('it-name')) it.name=e.target.value;
+    if(e.target.classList.contains('it-qty')) it.qty=+e.target.value;
+    if(e.target.classList.contains('it-plus')) it.plusMp=+e.target.value;
+    if(e.target.classList.contains('it-persec')) it.perSec=+e.target.value;
+    if(e.target.classList.contains('it-dur')) it.durationMin = e.target.value===''?null:+e.target.value;
+    if(e.target.classList.contains('it-price')) it.price = e.target.value===''?null:+e.target.value;
+  });
+  itemsBody.addEventListener('click', e=>{
+    if(e.target.closest('.it-del')){
+      const tr=e.target.closest('tr[data-idx]');
+      items.splice(+tr.dataset.idx,1); renderItems();
+    }
+  });
+}
+addItemBtn?.addEventListener('click', ()=>{ items.push({name:"Item",qty:1,plusMp:1,perSec:3}); renderItems(); });
+clearItemsBtn?.addEventListener('click', ()=>{ items=[]; renderItems(); });
+renderItems();
 
 /* ================== BLANKS ================== */
 function loadBlankPrices(){ try{return JSON.parse(localStorage.getItem(BLANK_PRICE_KEY)||"{}");}catch{return{};} }
@@ -196,7 +246,6 @@ function getPricePerCharge(spellId){
   const v = map[`price_${spellId}`];
   return (v==null?0:+v);
 }
-
 function renderPriceInputs(){
   const voc=vocationEl.value, list=spellsForVoc(voc), map=loadPricesMerged();
   pricesWrap.innerHTML = list.length ? list.map(spell=>{
@@ -236,9 +285,27 @@ function updateSpiritBadge(){
 updateSpiritBadge();
 
 function baseMpPerSec(voc){ const {mpPer, mpEverySec}=VOCATION_REGEN[voc]; return mpPer/mpEverySec; }
-function itemsMpPerSec(){ return 0; }
-function itemsCostFor(){ return 0; }
-
+function itemsMpPerSec(){
+  // soma (qty * plusMp / perSec) de cada item
+  return items.reduce((acc,it)=>{
+    const qty=+it.qty||0, plus=+it.plusMp||0, per=+it.perSec||1;
+    return acc + (qty * plus / Math.max(1,per));
+  },0);
+}
+function itemsCostFor(minutes){
+  // custo proporcional à duração usada (minutos / duraçãoMin), até 100%
+  let total=0;
+  for(const it of items){
+    const qty=+it.qty||0; if(!qty) continue;
+    const price=(it.price==null?null:+it.price);
+    const dur=(it.durationMin==null?null:+it.durationMin);
+    if(price!=null && dur!=null && dur>0){
+      const frac=Math.min(1, Math.max(0, minutes)/dur);
+      total += qty * price * frac;
+    }
+  }
+  return total;
+}
 function getBlankPriceById(id){
   if(id==null) return 0;
   const map=loadBlankPrices(), key=`blank_${id}`;
@@ -253,11 +320,11 @@ function simulateSpell(spell, minutes, voc, spiritStartOpt){
   if (spiritStartOpt === '' || spiritStartOpt == null || isNaN(+spiritStartOpt)) start = spMax;
   else start = Math.max(0, Math.min(spMax, +spiritStartOpt));
   let sp=start, mana=0, casts=0;
-  const baseSec=baseMpPerSec(voc), itemsSec=itemsMpPerSec();
+  const baseSec=baseMpPerSec(voc), itemSec=itemsMpPerSec();
 
   for(let t=0;t<secs;t++){
     const factor=0.5+0.5*(sp/spMax);
-    mana += (baseSec+itemsSec)*factor;
+    mana += (baseSec+itemSec)*factor;
     let guard=0;
     while(mana>=spell.mana && guard<1000){
       mana-=spell.mana; sp=Math.max(0, sp - spell.spirit); casts++; guard++;
@@ -267,7 +334,7 @@ function simulateSpell(spell, minutes, voc, spiritStartOpt){
   const pricePerCharge=getPricePerCharge(spell.id);
   const revenue=totalCharges*pricePerCharge;
   const blanksCost=(spell.blankType? casts*getBlankPriceById(spell.blankType) : 0);
-  const itemsCost=itemsCostFor();
+  const itemsCost=itemsCostFor(minutes);
   const profit=revenue - blanksCost - itemsCost;
   const profitPerHour=profit * (60/minutes);
   const chargesPerHour=(totalCharges/minutes)*60;
@@ -358,26 +425,20 @@ function renderResults(rows){
 }
 
 /* ================== SAFEZONE (com seleção do plano) ================== */
-
-/* Preenche o select dos planos */
 function renderSafezoneTiers(){
   if(!safeTierSelEl) return;
   safeTierSelEl.innerHTML = SAFEZONE_TIERS
     .map(t => `<option value="${t.points}">${t.label}</option>`)
     .join('');
 }
-
-/* custo pela fórmula solicitada */
 function safeCost(points, coinPrice){
   const p = (+points||0), c=(+coinPrice||0);
   return (p * c) / 10;
 }
-
-/* relatório para exibição */
 function makeSafezoneReport(row, coinPrice, points, label, durationHours){
   const cost = safeCost(points, coinPrice);
-  const profitH = row.calc.profitPerHour;            // lucro/h da runa
-  const chargesH = row.calc.chargesPerHour;          // cargas/h da runa
+  const profitH = row.calc.profitPerHour;
+  const chargesH = row.calc.chargesPerHour;
 
   const hoursToPay = profitH > 0 ? cost / profitH : Infinity;
   const totalProfit = isFinite(durationHours) ? profitH * durationHours : 0;
@@ -401,22 +462,14 @@ function makeSafezoneReport(row, coinPrice, points, label, durationHours){
     durationHours
   };
 }
-
 function hhmm(hoursFloat){
   if(!isFinite(hoursFloat)) return '∞';
   const totalMin=Math.round(hoursFloat*60), h=Math.floor(totalMin/60), m=totalMin%60;
   return `${h}h ${m}m`;
 }
-
 function renderSafezoneOutput(rep, coinPrice){
-  const hhmm = (hoursFloat)=>{
-    if(!isFinite(hoursFloat)) return '∞';
-    const totalMin=Math.round(hoursFloat*60), h=Math.floor(totalMin/60), m=totalMin%60;
-    return `${h}h ${m}m`;
-  };
-  const fmt = n => new Intl.NumberFormat('pt-BR',{maximumFractionDigits:0}).format(Math.round(n));
-  const fmtMoney = n => new Intl.NumberFormat('pt-BR').format(Math.round(n));
-
+  const fmtL = n => new Intl.NumberFormat('pt-BR',{maximumFractionDigits:0}).format(Math.round(n));
+  const fmtM = n => new Intl.NumberFormat('pt-BR').format(Math.round(n));
   safeResultEl.innerHTML = `
     <div class="card result-card"><div class="card-body">
       <div class="d-flex align-items-center justify-content-between">
@@ -424,19 +477,19 @@ function renderSafezoneOutput(rep, coinPrice){
       </div>
 
       <div class="small opacity-75">
-        Plano: <strong>${rep.planLabel}</strong> • Points: <strong>${rep.points}</strong> • Duração: <strong>${fmt(rep.durationHours)} h</strong>
+        Plano: <strong>${rep.planLabel}</strong> • Points: <strong>${rep.points}</strong> • Duração: <strong>${fmtL(rep.durationHours)} h</strong>
       </div>
 
       <div class="mt-1">Cálculo do custo:
         <code>(points × market) / 10</code> ⇒
-        <strong class="brand-accent">${rep.points} × ${fmtMoney(+coinPrice||0)} / 10 = ${fmtMoney(rep.cost)} gps</strong>
+        <strong class="brand-accent">${rep.points} × ${fmtM(+coinPrice||0)} / 10 = ${fmtM(rep.cost)} gps</strong>
       </div>
 
       <hr class="my-2"/>
 
       <div class="row row-cols-1 row-cols-md-3 g-2">
         <div class="col"><div class="small opacity-75">Runa</div><div class="fw-semibold">${rep.runeName}</div></div>
-        <div class="col"><div class="small opacity-75">Lucro/h</div><div class="fw-semibold">${fmtMoney(rep.profitH)} gps/h</div></div>
+        <div class="col"><div class="small opacity-75">Lucro/h</div><div class="fw-semibold">${fmtM(rep.profitH)} gps/h</div></div>
         <div class="col"><div class="small opacity-75">Tempo para pagar</div><div class="fw-semibold">${hhmm(rep.hoursToPay)}</div></div>
       </div>
 
@@ -445,15 +498,15 @@ function renderSafezoneOutput(rep, coinPrice){
       <div class="row row-cols-1 row-cols-md-4 g-2">
         <div class="col">
           <div class="small opacity-75">Lucro total (plano)</div>
-          <div class="fw-semibold">${fmtMoney(rep.totalProfit)} gps</div>
+          <div class="fw-semibold">${fmtM(rep.totalProfit)} gps</div>
         </div>
         <div class="col">
           <div class="small opacity-75">Qtd. total de runas</div>
-          <div class="fw-semibold">${fmt(rep.totalCharges)} cargas</div>
+          <div class="fw-semibold">${fmtL(rep.totalCharges)} cargas</div>
         </div>
         <div class="col">
           <div class="small opacity-75">Lucro após pagar</div>
-          <div class="fw-semibold">${fmtMoney(rep.profitAfterPay)} gps</div>
+          <div class="fw-semibold">${fmtM(rep.profitAfterPay)} gps</div>
         </div>
         <div class="col">
           <div class="small opacity-75">Tempo restante do plano</div>
@@ -463,9 +516,9 @@ function renderSafezoneOutput(rep, coinPrice){
     </div></div>`;
 }
 
-
 /* ================== AÇÕES ================== */
 function renderAll(){
+  renderItems();
   renderBlankTypeInputs();
   renderPriceInputs();
   renderSafezoneTiers();
@@ -478,7 +531,7 @@ compareBtn.addEventListener('click', ()=>{
   const spStart=spiritStartEl.value;
   const list=spellsForVoc(voc);
 
-  // se a vocação não conjura
+  // vocações que não conjuram
   if(!list.length){
     tabsBlock.classList.remove('d-none');
     document.getElementById('pane-ranking').classList.add('show','active');
@@ -495,12 +548,9 @@ compareBtn.addEventListener('click', ()=>{
   const rows=list.map(spell=>({spell, calc: simulateSpell(spell, minutes, voc, spStart)}));
   renderResults(rows);
 
-  // exibe TABS
   tabsBlock.classList.remove('d-none');
   ensureMdbTabs();
-
-  // Modal PIX OBRIGATÓRIO
-  showPixModal();
+  showPixModal(); // Modal PIX obrigatório
 });
 
 vocationEl.addEventListener('change', ()=>{
@@ -521,18 +571,22 @@ vocationEl.addEventListener('change', ()=>{
   }
 });
 
-/* ===== Safezone: cálculo com seleção do plano ===== */
+/* Safezone calc */
 calcSafeBtn.addEventListener('click', ()=>{
   const coinPrice = +coinPriceEl.value || 0;
   if(!coinPrice){
     safeResultEl.innerHTML = `<div class="alert alert-danger mb-0">
       Informe o <strong>Preço da coin (market)</strong> para calcular.
     </div>`;
+    showPixModal();
+    return;
   }
   if(!lastRows.length){
     safeResultEl.innerHTML = `<div class="alert alert-info mb-0">
       Calcule o ranking em <strong>RANKING ▸ Comparar runas</strong> primeiro.
     </div>`;
+    showPixModal();
+    return;
   }
 
   const selRune = safeRuneSelEl.value;
@@ -545,6 +599,7 @@ calcSafeBtn.addEventListener('click', ()=>{
 
   const rep = makeSafezoneReport(row, coinPrice, points, label, durationHours);
   renderSafezoneOutput(rep, coinPrice);
+  showPixModal();
 });
 
 /* ====== TABS fallback ====== */
@@ -614,9 +669,8 @@ function hidePixModal(){
   modalEl.classList.remove('show','d-block');
   const bd = document.getElementById('pixBackdrop');
   if (bd) bd.remove();
-  scrollToRunes(); // garante o scroll também no fallback
+  scrollToRunes();
 }
-
 document.getElementById('closePix')?.addEventListener('click', ()=> { scrollToRunes(); });
 document.getElementById('pixModal')?.addEventListener('hidden.mdb.modal', scrollToRunes);
 
@@ -632,16 +686,13 @@ copyPixBtn?.addEventListener('click', async ()=>{
 /* === Atualiza o select da Safezone com as runas do último ranking === */
 function refreshSafezoneRuneList(){
   if (!safeRuneSelEl) return;
-
   const previous = safeRuneSelEl.value || 'best';
   const options =
     `<option value="best">Melhor por lucro/h</option>` +
     (lastRows && lastRows.length
       ? lastRows.map(r => `<option value="${r.spell.id}">${r.spell.name}</option>`).join('')
       : '');
-
   safeRuneSelEl.innerHTML = options;
-
   const hasPrev = Array.from(safeRuneSelEl.options).some(o => o.value === previous);
   safeRuneSelEl.value = hasPrev ? previous : 'best';
 }
